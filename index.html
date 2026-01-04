@@ -330,9 +330,51 @@
 
         /* --- Inventory --- */
         .inventory-section { margin-top: 3rem; }
-        .inventory-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-        .inventory-header h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; }
+        .inventory-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 2rem;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .inventory-header h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; flex: 1; min-width: 200px; }
         
+        .inventory-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+            justify-content: flex-end;
+            min-width: 300px;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+        .search-box input {
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            font-size: 0.85rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 100px;
+            transition: all 0.3s;
+        }
+        .search-box input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-soft);
+        }
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
         .product-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
         .item-card {
             background: var(--bg-card);
@@ -344,6 +386,7 @@
             gap: 1.25rem;
             transition: 0.3s;
         }
+        .item-card.hidden { display: none; }
         .item-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--primary); }
         .item-card img { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; }
         .item-card-info { flex: 1; }
@@ -519,7 +562,13 @@
         <section class="inventory-section">
             <div class="inventory-header">
                 <h2>Inventario de Servicios</h2>
-                <span id="counter" style="background: var(--primary-soft); color: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;">0 servicios</span>
+                <div class="inventory-controls">
+                    <div class="search-box">
+                        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                        <input type="text" id="inventory-search" placeholder="Buscar por nombre o categoría...">
+                    </div>
+                    <span id="counter" style="background: var(--primary-soft); color: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;">0 servicios</span>
+                </div>
             </div>
             <div id="product-list" class="product-list"></div>
         </section>
@@ -684,12 +733,57 @@
             document.getElementById('ui-category').innerText = catSelect.options[catSelect.selectedIndex].text.toUpperCase();
         };
 
+        // --- MOTOR DE BÚSQUEDA ---
+        document.getElementById('inventory-search').oninput = (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.item-card');
+            let foundCount = 0;
+
+            cards.forEach(card => {
+                const name = card.querySelector('h4').innerText.toLowerCase();
+                const category = card.querySelector('small').innerText.toLowerCase();
+                
+                if (name.includes(query) || category.includes(query)) {
+                    card.classList.remove('hidden');
+                    foundCount++;
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+
+            document.getElementById('counter').innerText = `${foundCount} servicios encontrados`;
+            
+            // Mostrar mensaje si no hay resultados
+            const listDiv = document.getElementById('product-list');
+            const noResultsMsgId = 'search-no-results';
+            let noResultsMsg = document.getElementById(noResultsMsgId);
+            
+            if (foundCount === 0) {
+                if (!noResultsMsg) {
+                    noResultsMsg = document.createElement('p');
+                    noResultsMsg.id = noResultsMsgId;
+                    noResultsMsg.style.gridColumn = '1 / -1';
+                    noResultsMsg.style.textAlign = 'center';
+                    noResultsMsg.style.padding = '3rem';
+                    noResultsMsg.style.color = 'var(--text-muted)';
+                    noResultsMsg.style.fontStyle = 'italic';
+                    noResultsMsg.innerText = 'No se encontraron servicios que coincidan con tu búsqueda.';
+                    listDiv.appendChild(noResultsMsg);
+                }
+            } else if (noResultsMsg) {
+                noResultsMsg.remove();
+            }
+        };
+
         async function loadServices() {
             const listDiv = document.getElementById('product-list');
             const { data, error } = await supabaseClient.from('servicios').select('*').order('created_at', { ascending: false });
             if (error) return;
+            
+            document.getElementById('inventory-search').value = ''; // Limpiar búsqueda al cargar
             document.getElementById('counter').innerText = `${data.length} servicios`;
             listDiv.innerHTML = data.length ? '' : '<p style="color:var(--text-muted)">No hay servicios registrados.</p>';
+            
             data.forEach(s => {
                 const item = document.createElement('div');
                 item.className = 'item-card';
@@ -723,14 +817,11 @@
             document.getElementById('stock').value = data.stock || '0';
             document.getElementById('desc').value = data.desc || '';
             
-            // Llenar inputs de URL
             document.getElementById('imagen-url').value = data.imagen;
             for(let i=1; i<=5; i++) {
                 document.getElementById(`imagen${i}-url`).value = data[`imagen${i}`] || '';
             }
 
-            // --- LLENAR PREVISUALIZACIONES DE ARCHIVOS ---
-            // Portada
             const mainPrev = document.getElementById('file-preview-main');
             if (data.imagen) {
                 mainPrev.src = data.imagen;
@@ -738,7 +829,6 @@
                 document.getElementById('file-status').innerText = "IMAGEN ACTUAL CARGADA";
             }
 
-            // Galería mini
             for(let i=1; i<=5; i++) {
                 const url = data[`imagen${i}`];
                 const box = document.getElementById(`preview-box-${i}`);
@@ -768,7 +858,7 @@
             document.getElementById('ui-desc').innerText = data.desc || 'Descripción breve del tratamiento...';
             document.getElementById('ui-price').innerText = "$" + data.precio.toLocaleString();
             
-            setMethod('url'); // Por defecto al editar mostrar URL, pero "Archivos" ya tendrá las fotos puestas
+            setMethod('url');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -814,7 +904,6 @@
                             const { data } = supabaseClient.storage.from('imagenes').getPublicUrl(fileName);
                             finalUrl = data.publicUrl;
                         } else if (isEditing) {
-                            // Si estamos editando y no subimos archivo nuevo, mantenemos el actual que está en la previsualización
                             const prevElement = field === 'imagen' ? document.getElementById('file-preview-main') : document.querySelector(`#preview-box-${field.slice(-1)} img`);
                             if (prevElement && prevElement.src && !prevElement.src.startsWith('blob:')) {
                                 finalUrl = prevElement.src;
@@ -839,7 +928,6 @@
                     ...urls
                 };
 
-                // Si al editar no se eligió imagen y no había previa, no enviamos null para no borrar la anterior accidentalmente
                 if (isEditing) {
                     imgFields.forEach(f => { if(!urls[f]) delete payload[f]; });
                 }
