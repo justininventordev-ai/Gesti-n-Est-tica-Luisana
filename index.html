@@ -151,12 +151,6 @@
             box-shadow: 0 0 0 4px var(--primary-soft);
         }
 
-        select option {
-            background: var(--bg-card);
-            color: var(--text-main);
-            padding: 10px;
-        }
-
         /* --- Media Manager --- */
         .media-manager {
             background: var(--bg-body);
@@ -226,9 +220,12 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            transition: 0.2s;
         }
-        .gallery-item .mini-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-        .gallery-item .mini-upload i { font-size: 0.8rem; color: var(--text-muted); }
+        .gallery-item .mini-upload.has-file { border-color: var(--primary); background: var(--primary-soft); }
+        .gallery-item .mini-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 2; }
+        .gallery-item .mini-upload i { font-size: 0.8rem; color: var(--text-muted); position: relative; z-index: 1; }
+        .gallery-item .mini-upload img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; z-index: 1; }
 
         /* --- Buttons --- */
         .btn-primary {
@@ -329,7 +326,6 @@
         </header>
 
         <main class="grid-layout">
-            <!-- Formulario -->
             <section>
                 <form id="admin-form" class="panel">
                     <div class="brand-header">
@@ -340,7 +336,6 @@
                     <div id="msg-box" class="alert"></div>
                     <input type="hidden" id="edit-id">
 
-                    <!-- Info General -->
                     <div class="section-header">Información del Servicio</div>
                     <div class="form-group">
                         <label>Nombre del Tratamiento</label>
@@ -370,7 +365,6 @@
                         </select>
                     </div>
 
-                    <!-- Media -->
                     <div class="section-header">Contenido Multimedia</div>
                     <div class="media-manager">
                         <div class="method-toggle">
@@ -378,7 +372,6 @@
                             <button type="button" class="toggle-btn" id="btn-url-method">ENLACES URL</button>
                         </div>
 
-                        <!-- Carga Principal -->
                         <div class="main-upload">
                             <label>Imagen de Portada (Obligatoria)</label>
                             <div id="container-file" class="upload-box">
@@ -390,14 +383,13 @@
                             </div>
                         </div>
 
-                        <!-- Galería Secundaria -->
                         <label>Galería Adicional (Opcional - Máx 5)</label>
                         <div class="gallery-grid" id="gallery-files">
-                            <div class="gallery-item"><div class="mini-upload"><input type="file" id="imagen1-file" accept="image/*"><i>+</i></div><label>Img 1</label></div>
-                            <div class="gallery-item"><div class="mini-upload"><input type="file" id="imagen2-file" accept="image/*"><i>+</i></div><label>Img 2</label></div>
-                            <div class="gallery-item"><div class="mini-upload"><input type="file" id="imagen3-file" accept="image/*"><i>+</i></div><label>Img 3</label></div>
-                            <div class="gallery-item"><div class="mini-upload"><input type="file" id="imagen4-file" accept="image/*"><i>+</i></div><label>Img 4</label></div>
-                            <div class="gallery-item"><div class="mini-upload"><input type="file" id="imagen5-file" accept="image/*"><i>+</i></div><label>Img 5</label></div>
+                            <div class="gallery-item"><div class="mini-upload" id="preview-box-1"><input type="file" id="imagen1-file" accept="image/*" class="mini-input"><i>+</i></div><label>Img 1</label></div>
+                            <div class="gallery-item"><div class="mini-upload" id="preview-box-2"><input type="file" id="imagen2-file" accept="image/*" class="mini-input"><i>+</i></div><label>Img 2</label></div>
+                            <div class="gallery-item"><div class="mini-upload" id="preview-box-3"><input type="file" id="imagen3-file" accept="image/*" class="mini-input"><i>+</i></div><label>Img 3</label></div>
+                            <div class="gallery-item"><div class="mini-upload" id="preview-box-4"><input type="file" id="imagen4-file" accept="image/*" class="mini-input"><i>+</i></div><label>Img 4</label></div>
+                            <div class="gallery-item"><div class="mini-upload" id="preview-box-5"><input type="file" id="imagen5-file" accept="image/*" class="mini-input"><i>+</i></div><label>Img 5</label></div>
                         </div>
                         <div class="gallery-grid" id="gallery-urls" style="display: none;">
                             <input type="text" id="imagen1-url" placeholder="URL 1" style="font-size: 0.7rem; padding: 0.5rem;">
@@ -415,7 +407,6 @@
                 </form>
             </section>
 
-            <!-- Vista Previa -->
             <aside class="preview-pane">
                 <div class="preview-card">
                     <img src="https://via.placeholder.com/400x300?text=Estética+Luisana" id="ui-img" class="preview-img">
@@ -425,21 +416,15 @@
                         <div class="preview-price" id="ui-price">$0</div>
                     </div>
                 </div>
-                <div style="padding: 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.75rem;">
-                    Los cambios se sincronizan en tiempo real con la base de datos de la tienda.
-                </div>
             </aside>
         </main>
 
-        <!-- Lista -->
         <section class="inventory-section">
             <div class="inventory-header">
                 <h2>Inventario de Servicios</h2>
                 <span id="counter" style="background: var(--primary-soft); color: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;">0 servicios</span>
             </div>
-            <div id="product-list" class="product-list">
-                <!-- Items dinámicos -->
-            </div>
+            <div id="product-list" class="product-list"></div>
         </section>
     </div>
 
@@ -451,7 +436,6 @@
         let isEditing = false;
         let imageMethod = 'file';
 
-        // Gestión de pestañas de método de imagen
         document.getElementById('btn-file-method').onclick = () => setMethod('file');
         document.getElementById('btn-url-method').onclick = () => setMethod('url');
 
@@ -459,15 +443,38 @@
             imageMethod = m;
             document.getElementById('btn-file-method').classList.toggle('active', m === 'file');
             document.getElementById('btn-url-method').classList.toggle('active', m === 'url');
-            
             document.getElementById('container-file').style.display = m === 'file' ? 'flex' : 'none';
             document.getElementById('gallery-files').style.display = m === 'file' ? 'grid' : 'none';
-            
             document.getElementById('container-url').style.display = m === 'url' ? 'block' : 'none';
             document.getElementById('gallery-urls').style.display = m === 'url' ? 'grid' : 'none';
         }
 
-        // Limpiar formulario
+        // --- GESTIÓN DE MINIATURAS ADICIONALES ---
+        function setupMiniPreviews() {
+            const miniInputs = document.querySelectorAll('.mini-input');
+            miniInputs.forEach(input => {
+                input.onchange = (e) => {
+                    const box = input.parentElement;
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                            // Limpiar contenido previo (excepto el input)
+                            const existingImg = box.querySelector('img');
+                            if (existingImg) existingImg.remove();
+                            
+                            const img = document.createElement('img');
+                            img.src = ev.target.result;
+                            box.appendChild(img);
+                            box.classList.add('has-file');
+                            box.querySelector('i').style.display = 'none';
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                };
+            });
+        }
+
         function clearAll() {
             isEditing = false;
             document.getElementById('admin-form').reset();
@@ -480,10 +487,18 @@
             document.getElementById('ui-name').innerText = "Nombre del Servicio";
             document.getElementById('ui-price').innerText = "$0";
             document.getElementById('ui-category').innerText = "CEJAS Y PESTAÑAS";
+            
+            // Limpiar miniaturas
+            document.querySelectorAll('.mini-upload').forEach(box => {
+                box.classList.remove('has-file');
+                const img = box.querySelector('img');
+                if (img) img.remove();
+                box.querySelector('i').style.display = 'block';
+            });
+            
             setMethod('file');
         }
 
-        // Live Preview
         document.getElementById('imagen-file').onchange = (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -498,30 +513,20 @@
             if (e.target.value.startsWith('http')) document.getElementById('ui-img').src = e.target.value;
         };
 
-        // Mejora en la actualización de la categoría en la vista previa
         document.getElementById('admin-form').oninput = () => {
             document.getElementById('ui-name').innerText = document.getElementById('nombre').value || 'Nombre del Servicio';
             const price = document.getElementById('precio').value || 0;
             document.getElementById('ui-price').innerText = "$" + parseInt(price).toLocaleString();
-            
-            // Mostrar el texto elegante de la categoría, no el value interno
             const catSelect = document.getElementById('categoria');
             document.getElementById('ui-category').innerText = catSelect.options[catSelect.selectedIndex].text.toUpperCase();
         };
 
-        // Cargar Lista
         async function loadServices() {
             const listDiv = document.getElementById('product-list');
             const { data, error } = await supabaseClient.from('servicios').select('*').order('created_at', { ascending: false });
-            
-            if (error) {
-                listDiv.innerHTML = `<p style="color:red">Error de conexión</p>`;
-                return;
-            }
-            
+            if (error) return;
             document.getElementById('counter').innerText = `${data.length} servicios`;
             listDiv.innerHTML = data.length ? '' : '<p style="color:var(--text-muted)">No hay servicios registrados.</p>';
-            
             data.forEach(s => {
                 const item = document.createElement('div');
                 item.className = 'item-card';
@@ -554,17 +559,14 @@
             
             setMethod('url');
             document.getElementById('imagen-url').value = data.imagen;
-            document.getElementById('imagen1-url').value = data.imagen1 || '';
-            document.getElementById('imagen2-url').value = data.imagen2 || '';
-            document.getElementById('imagen3-url').value = data.imagen3 || '';
-            document.getElementById('imagen4-url').value = data.imagen4 || '';
-            document.getElementById('imagen5-url').value = data.imagen5 || '';
+            for(let i=1; i<=5; i++) {
+                document.getElementById(`imagen${i}-url`).value = data[`imagen${i}`] || '';
+            }
             
             document.getElementById('btn-save').innerText = "Guardar Cambios";
             document.getElementById('btn-cancel-edit').style.display = 'block';
             document.getElementById('ui-img').src = data.imagen;
             
-            // Forzar actualización de vista previa de categoría al editar
             const catSelect = document.getElementById('categoria');
             document.getElementById('ui-category').innerText = catSelect.options[catSelect.selectedIndex].text.toUpperCase();
             document.getElementById('ui-name').innerText = data.nombre;
@@ -581,12 +583,10 @@
 
         document.getElementById('btn-cancel-edit').onclick = clearAll;
 
-        // Proceso de Guardado
         document.getElementById('admin-form').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-save');
             const msg = document.getElementById('msg-box');
-            
             btn.disabled = true;
             msg.style.display = 'none';
 
@@ -637,7 +637,6 @@
                 msg.className = "alert alert-success";
                 clearAll();
                 loadServices();
-
             } catch (err) {
                 msg.innerHTML = `⚠️ Error: ${err.message}`;
                 msg.className = "alert alert-error";
@@ -646,7 +645,10 @@
             }
         };
 
-        window.onload = loadServices;
+        window.onload = () => {
+            loadServices();
+            setupMiniPreviews();
+        };
     </script>
 </body>
 </html>
