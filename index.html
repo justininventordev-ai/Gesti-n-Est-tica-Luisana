@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión | Estética Luisana</title>
+    <title>Panel de Control | Estética Luisana</title>
     
     <!-- Librería de Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -11,342 +11,346 @@
     <!-- Fuentes de Google -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <style>
         :root {
             --primary: #db2777;
-            --primary-hover: #be185d;
-            --primary-light: #fdf2f8;
-            --secondary: #eab308;
-            --text-dark: #1e293b;
-            --text-gray: #64748b;
-            --bg-page: #fff1f2;
+            --primary-dark: #be185d;
+            --primary-soft: #fdf2f8;
+            --accent: #eab308;
+            --bg-body: #f8fafc;
             --bg-card: #ffffff;
-            --success: #22c55e;
-            --info: #3b82f6;
-            --error: #ef4444;
-            --border: #f1f5f9;
-            --radius-lg: 24px;
-            --radius-md: 16px;
-            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --radius-xl: 20px;
+            --radius-lg: 12px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
         }
 
         @media (prefers-color-scheme: dark) {
             :root {
-                --bg-page: #1c1016;
-                --bg-card: #29151e;
-                --text-dark: #fce7f3;
-                --text-gray: #fbcfe8;
-                --border: #451525;
-                --primary-light: #3d1020;
+                --bg-body: #0f172a;
+                --bg-card: #1e293b;
+                --text-main: #f8fafc;
+                --text-muted: #94a3b8;
+                --border-color: #334155;
+                --primary-soft: #31212d;
             }
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
-            background-color: var(--bg-page); 
-            color: var(--text-dark); 
-            min-height: 100vh; 
-            padding: 1rem;
+            font-family: 'Poppins', sans-serif; 
+            background-color: var(--bg-body); 
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 2rem 1rem;
         }
-        
-        .admin-container {
-            width: 100%;
-            max-width: 1000px;
+
+        .container {
+            max-width: 1100px;
             margin: 0 auto;
         }
 
-        /* Estilo del Formulario y Vista Previa */
-        .admin-layout {
-            display: grid;
-            grid-template-columns: 1fr 320px;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        @media (max-width: 850px) {
-            .admin-layout { grid-template-columns: 1fr; }
-            .preview-side { display: none; } /* Ocultar vista previa en móvil para ahorrar espacio */
-        }
-
-        .card {
-            background: var(--bg-card);
-            border-radius: var(--radius-lg);
-            padding: 2rem;
-            box-shadow: var(--shadow);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        @media (max-width: 600px) {
-            .card { padding: 1.5rem; }
-            .brand-header h1 { font-size: 1.8rem; }
-        }
-
-        .brand-header h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.2rem;
-            color: var(--primary);
-            line-height: 1.2;
-        }
-
-        .brand-header p {
-            color: var(--text-gray);
-            font-size: 0.9rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group { margin-bottom: 1rem; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-
-        label {
-            display: block;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-bottom: 0.3rem;
-            color: var(--text-gray);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border-radius: var(--radius-md);
-            border: 2px solid var(--border);
-            background: var(--primary-light);
-            color: var(--text-dark);
-            outline: none;
-            transition: 0.3s;
-            font-size: 0.95rem;
-        }
-
-        input:focus, select:focus {
-            border-color: var(--primary);
-            background: var(--bg-card);
-        }
-
-        /* Botonera de imágenes */
-        .method-selector {
-            display: flex;
-            background: var(--primary-light);
-            padding: 4px;
-            border-radius: 12px;
-            margin-bottom: 1rem;
-        }
-
-        .method-btn {
-            flex: 1;
-            padding: 0.5rem;
-            font-size: 0.75rem;
-            font-weight: 700;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            border-radius: 10px;
-            transition: 0.3s;
-            color: var(--text-gray);
-        }
-
-        .method-btn.active {
-            background: var(--white, white);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            color: var(--primary);
-        }
-
-        .upload-area {
-            border: 2px dashed var(--primary);
-            border-radius: var(--radius-md);
-            padding: 2rem;
-            text-align: center;
-            background: var(--primary-light);
-            position: relative;
-            cursor: pointer;
-        }
-
-        .upload-area input[type="file"] {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 1rem;
-            border-radius: var(--radius-md);
-            border: none;
-            background: linear-gradient(135deg, var(--primary), #ec4899);
-            color: white;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.3s;
-            margin-top: 1rem;
-            font-size: 1rem;
-        }
-
-        .btn-cancel {
-            width: 100%;
-            padding: 0.75rem;
-            border: none;
-            background: var(--border);
-            color: var(--text-gray);
-            border-radius: var(--radius-md);
-            margin-top: 0.5rem;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        /* Gestión de Lista */
-        .list-section h2 {
-            font-family: 'Playfair Display', serif;
-            margin-bottom: 1.5rem;
-            color: var(--text-dark);
-        }
-
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.2rem;
-        }
-
-        .item-card {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-        }
-
-        .item-card img {
-            width: 70px;
-            height: 70px;
-            border-radius: 12px;
-            object-fit: cover;
-            background: #eee;
-        }
-
-        .item-info { flex-grow: 1; overflow: hidden; }
-        .item-info h4 { 
-            font-size: 0.95rem; 
-            white-space: nowrap; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-        }
-        .item-info p { font-size: 0.85rem; color: var(--primary); font-weight: 700; }
-
-        .item-actions { display: flex; flex-direction: column; gap: 0.4rem; }
-        
-        .action-btn {
-            border: none;
-            padding: 0.4rem 0.6rem;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .edit-btn { background: #dbeafe; color: #1e40af; }
-        .edit-btn:hover { background: #1e40af; color: white; }
-        .delete-btn { background: #fee2e2; color: #b91c1c; }
-        .delete-btn:hover { background: #b91c1c; color: white; }
-
-        /* Notificaciones */
-        .msg {
-            padding: 1rem;
-            border-radius: var(--radius-md);
-            margin-bottom: 1rem;
-            font-size: 0.85rem;
-            display: none;
-            font-weight: 600;
-        }
-        .msg.success { display: block; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .msg.error { display: block; background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-
-        .preview-side {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            position: sticky;
-            top: 2rem;
-            height: fit-content;
-        }
-
-        .preview-box {
-            background: var(--bg-card);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-
-        .preview-img-container {
-            width: 100%;
-            height: 180px;
-            background: #f1f5f9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        .preview-img-container img { width: 100%; height: 100%; object-fit: cover; }
-        .preview-label { position: absolute; top: 10px; left: 10px; background: var(--primary); color: white; padding: 2px 8px; font-size: 0.6rem; font-weight: 800; border-radius: 5px; }
-
-        .nav-header {
+        /* --- Header --- */
+        .header-actions {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .back-btn:hover { color: var(--primary); }
+
+        /* --- Layout --- */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .grid-layout { grid-template-columns: 1fr; }
+            .preview-pane { display: none; }
+        }
+
+        /* --- Cards & Panels --- */
+        .panel {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
             margin-bottom: 1.5rem;
         }
 
-        .back-link {
-            text-decoration: none;
-            color: var(--text-gray);
-            font-weight: 600;
+        .panel-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .panel-subtitle {
+            color: var(--text-muted);
             font-size: 0.85rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin: 1.5rem 0 1rem;
             display: flex;
             align-items: center;
+            gap: 0.5rem;
+        }
+        .section-header::after { content: ""; flex: 1; height: 1px; background: var(--border-color); }
+
+        /* --- Inputs --- */
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+        .form-group { margin-bottom: 1.25rem; }
+        label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-main); }
+
+        input, select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: var(--radius-lg);
+            border: 2px solid var(--border-color);
+            background: transparent;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-soft);
+        }
+
+        select option {
+            background: var(--bg-card);
+            color: var(--text-main);
+            padding: 10px;
+        }
+
+        /* --- Media Manager --- */
+        .media-manager {
+            background: var(--bg-body);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            border: 1px dashed var(--border-color);
+        }
+
+        .method-toggle {
+            display: inline-flex;
+            background: var(--border-color);
+            padding: 4px;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        .toggle-btn {
+            padding: 0.5rem 1.25rem;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .toggle-btn.active { background: var(--bg-card); color: var(--primary); box-shadow: var(--shadow-sm); }
+
+        .main-upload { margin-bottom: 1.5rem; }
+        .upload-box {
+            position: relative;
+            height: 120px;
+            border: 2px dashed var(--primary);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            cursor: pointer;
+            transition: 0.2s;
+            background: var(--bg-card);
+        }
+        .upload-box:hover { background: var(--primary-soft); }
+        .upload-box input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+        .upload-box span { font-size: 0.75rem; font-weight: 600; color: var(--primary); }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.75rem;
+        }
+        .gallery-item {
+            display: flex;
+            flex-direction: column;
             gap: 0.4rem;
         }
+        .gallery-item label { font-size: 0.6rem; text-align: center; color: var(--text-muted); }
+        .gallery-item .mini-upload {
+            height: 60px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-card);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .gallery-item .mini-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+        .gallery-item .mini-upload i { font-size: 0.8rem; color: var(--text-muted); }
+
+        /* --- Buttons --- */
+        .btn-primary {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: var(--radius-lg);
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 12px rgba(219, 39, 119, 0.3);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(219, 39, 119, 0.4); }
+        .btn-primary:disabled { opacity: 0.7; transform: none; cursor: wait; }
+
+        .btn-cancel {
+            width: 100%;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        /* --- Preview Pane --- */
+        .preview-pane { position: sticky; top: 2rem; }
+        .preview-card {
+            background: var(--bg-card);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+        }
+        .preview-img { width: 100%; height: 220px; object-fit: cover; background: #f1f5f9; }
+        .preview-content { padding: 1.5rem; text-align: center; }
+        .preview-category { font-size: 0.65rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; }
+        .preview-name { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 0.5rem; }
+        .preview-price { font-size: 1.25rem; font-weight: 700; color: var(--text-main); }
+
+        /* --- Inventory --- */
+        .inventory-section { margin-top: 3rem; }
+        .inventory-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .inventory-header h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; }
+        
+        .product-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+        .item-card {
+            background: var(--bg-card);
+            padding: 1.25rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            transition: 0.3s;
+        }
+        .item-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--primary); }
+        .item-card img { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; }
+        .item-card-info { flex: 1; }
+        .item-card-info h4 { font-size: 0.95rem; margin-bottom: 0.25rem; }
+        .item-card-info p { color: var(--primary); font-weight: 700; font-size: 0.9rem; }
+        
+        .item-actions { display: flex; flex-direction: column; gap: 0.5rem; }
+        .btn-icon {
+            padding: 0.5rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: 700;
+            transition: 0.2s;
+        }
+        .edit-icon { background: #eff6ff; color: #2563eb; }
+        .edit-icon:hover { background: #2563eb; color: white; }
+        .delete-icon { background: #fef2f2; color: #dc2626; }
+        .delete-icon:hover { background: #dc2626; color: white; }
+
+        /* --- Messages --- */
+        .alert { padding: 1rem; border-radius: var(--radius-lg); margin-bottom: 1.5rem; display: none; font-size: 0.85rem; font-weight: 500; }
+        .alert-success { display: block; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+        .alert-error { display: block; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
     </style>
 </head>
 <body>
 
-    <div class="admin-container">
-        <header class="nav-header">
-            <a href="index.html" class="back-link">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                Regresar a la Tienda
+    <div class="container">
+        <header class="header-actions">
+            <a href="index.html" class="back-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                Volver a la tienda
             </a>
-            <span id="system-time" style="font-size: 0.7rem; color: var(--text-gray); font-weight: 600;">EN VIVO</span>
+            <div id="status-tag" style="font-size: 0.7rem; font-weight: 700; color: var(--accent);">● SISTEMA ACTIVO</div>
         </header>
 
-        <div class="admin-layout">
-            <!-- Formulario Principal -->
-            <section class="card">
-                <div class="brand-header">
-                    <h1 id="form-title">Nuevo Tratamiento</h1>
-                    <p id="form-desc">Completa los datos para publicar un nuevo servicio.</p>
-                </div>
+        <main class="grid-layout">
+            <!-- Formulario -->
+            <section>
+                <form id="admin-form" class="panel">
+                    <div class="brand-header">
+                        <h1 class="panel-title" id="form-title">Gestionar Tratamiento</h1>
+                        <p class="panel-subtitle" id="form-desc">Define los detalles del servicio y su galería visual.</p>
+                    </div>
 
-                <div id="msg-box" class="msg"></div>
-
-                <form id="admin-form">
+                    <div id="msg-box" class="alert"></div>
                     <input type="hidden" id="edit-id">
-                    
+
+                    <!-- Info General -->
+                    <div class="section-header">Información del Servicio</div>
                     <div class="form-group">
                         <label>Nombre del Tratamiento</label>
-                        <input type="text" id="nombre" placeholder="Ej: Limpieza Profunda Facial" required>
+                        <input type="text" id="nombre" placeholder="Ej: Facial Hidratante de Oro" required>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label>Precio (COP)</label>
-                            <input type="number" id="precio" placeholder="0" required>
+                            <input type="number" id="precio" placeholder="150000" required>
                         </div>
                         <div class="form-group">
                             <label>Descuento (%)</label>
@@ -355,66 +359,91 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Categoría</label>
+                        <label>Categoría del Tratamiento</label>
                         <select id="categoria">
-                            <option value="cosmetologia">Cosmetología</option>
+                            <option value="pestañas">Cejas y Pestañas</option>
+                            <option value="cosmetologia">Cosmetología General</option>
                             <option value="limpieza">Limpieza Facial</option>
                             <option value="adelgazar">Adelgazamiento</option>
-                            <option value="laser">Láser</option>
+                            <option value="laser">Tecnología Láser</option>
+                            <option value="masajes">Masajes y Relajación</option>
                         </select>
                     </div>
 
-                    <div class="form-group">
-                        <label>Imagen</label>
-                        <div class="method-selector">
-                            <button type="button" class="method-btn active" id="btn-file-method">ARCHIVO</button>
-                            <button type="button" class="method-btn" id="btn-url-method">ENLACE (URL)</button>
+                    <!-- Media -->
+                    <div class="section-header">Contenido Multimedia</div>
+                    <div class="media-manager">
+                        <div class="method-toggle">
+                            <button type="button" class="toggle-btn active" id="btn-file-method">ARCHIVOS</button>
+                            <button type="button" class="toggle-btn" id="btn-url-method">ENLACES URL</button>
                         </div>
 
-                        <div id="container-file" class="upload-area">
-                            <span id="file-status" style="font-size: 0.75rem; font-weight: 700; color: var(--primary);">CLICK PARA SUBIR FOTO</span>
-                            <input type="file" id="imagen-file" accept="image/*">
+                        <!-- Carga Principal -->
+                        <div class="main-upload">
+                            <label>Imagen de Portada (Obligatoria)</label>
+                            <div id="container-file" class="upload-box">
+                                <span id="file-status">CLICK O ARRASTRA LA PORTADA</span>
+                                <input type="file" id="imagen-file" accept="image/*">
+                            </div>
+                            <div id="container-url" style="display: none;">
+                                <input type="text" id="imagen-url" placeholder="https://ejemplo.com/portada.jpg">
+                            </div>
                         </div>
 
-                        <div id="container-url" style="display: none;">
-                            <input type="text" id="imagen-url" placeholder="https://ejemplo.com/foto.jpg">
+                        <!-- Galería Secundaria -->
+                        <label>Galería Adicional (Opcional - Máx 5)</label>
+                        <div class="gallery-grid" id="gallery-files">
+                            <div class="gallery-item"><div class="mini-upload"><input type="file" id="imagen1-file" accept="image/*"><i>+</i></div><label>Img 1</label></div>
+                            <div class="gallery-item"><div class="mini-upload"><input type="file" id="imagen2-file" accept="image/*"><i>+</i></div><label>Img 2</label></div>
+                            <div class="gallery-item"><div class="mini-upload"><input type="file" id="imagen3-file" accept="image/*"><i>+</i></div><label>Img 3</label></div>
+                            <div class="gallery-item"><div class="mini-upload"><input type="file" id="imagen4-file" accept="image/*"><i>+</i></div><label>Img 4</label></div>
+                            <div class="gallery-item"><div class="mini-upload"><input type="file" id="imagen5-file" accept="image/*"><i>+</i></div><label>Img 5</label></div>
+                        </div>
+                        <div class="gallery-grid" id="gallery-urls" style="display: none;">
+                            <input type="text" id="imagen1-url" placeholder="URL 1" style="font-size: 0.7rem; padding: 0.5rem;">
+                            <input type="text" id="imagen2-url" placeholder="URL 2" style="font-size: 0.7rem; padding: 0.5rem;">
+                            <input type="text" id="imagen3-url" placeholder="URL 3" style="font-size: 0.7rem; padding: 0.5rem;">
+                            <input type="text" id="imagen4-url" placeholder="URL 4" style="font-size: 0.7rem; padding: 0.5rem;">
+                            <input type="text" id="imagen5-url" placeholder="URL 5" style="font-size: 0.7rem; padding: 0.5rem;">
                         </div>
                     </div>
 
-                    <button type="submit" class="btn-submit" id="btn-save">Publicar Servicio</button>
-                    <button type="button" class="btn-cancel" id="btn-cancel-edit" style="display: none;">Cancelar Edición</button>
+                    <div style="margin-top: 2rem;">
+                        <button type="submit" class="btn-primary" id="btn-save">Publicar Tratamiento</button>
+                        <button type="button" class="btn-cancel" id="btn-cancel-edit" style="display: none;">Cancelar edición</button>
+                    </div>
                 </form>
             </section>
 
-            <!-- Vista Previa Flotante -->
-            <aside class="preview-side">
-                <span style="font-weight: 800; font-size: 0.65rem; color: var(--primary); letter-spacing: 1px;">VISTA PREVIA EN VIVO</span>
-                <div class="preview-box">
-                    <div class="preview-img-container">
-                        <img src="" id="ui-img" style="display: none;">
-                        <span id="ui-placeholder" style="font-size: 2.5rem;">🌸</span>
-                        <div class="preview-label">MUESTRA</div>
-                    </div>
-                    <div style="padding: 1.2rem; text-align: center;">
-                        <h4 id="ui-name" style="font-size: 0.9rem; margin-bottom: 0.3rem;">Tratamiento</h4>
-                        <div id="ui-price" style="font-weight: 800; color: var(--text-dark);">$0</div>
+            <!-- Vista Previa -->
+            <aside class="preview-pane">
+                <div class="preview-card">
+                    <img src="https://via.placeholder.com/400x300?text=Estética+Luisana" id="ui-img" class="preview-img">
+                    <div class="preview-content">
+                        <div class="preview-category" id="ui-category">CEJAS Y PESTAÑAS</div>
+                        <h3 class="preview-name" id="ui-name">Nombre del Servicio</h3>
+                        <div class="preview-price" id="ui-price">$0</div>
                     </div>
                 </div>
-                <p style="font-size: 0.7rem; color: var(--text-gray); line-height: 1.4;">Los cambios que realices aquí se verán reflejados inmediatamente en tu página principal tras guardar.</p>
+                <div style="padding: 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.75rem;">
+                    Los cambios se sincronizan en tiempo real con la base de datos de la tienda.
+                </div>
             </aside>
-        </div>
+        </main>
 
-        <!-- Lista de Gestión con scroll para móviles -->
-        <section class="list-section">
-            <h2>Gestión de Inventario</h2>
-            <div id="product-list" class="product-grid">
-                <p style="color: var(--text-gray); font-style: italic;">Sincronizando con la base de datos...</p>
+        <!-- Lista -->
+        <section class="inventory-section">
+            <div class="inventory-header">
+                <h2>Inventario de Servicios</h2>
+                <span id="counter" style="background: var(--primary-soft); color: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;">0 servicios</span>
+            </div>
+            <div id="product-list" class="product-list">
+                <!-- Items dinámicos -->
             </div>
         </section>
     </div>
 
     <script>
-        // CONFIGURACIÓN SUPABASE
         const SUPABASE_URL = 'https://xyudwrtygzzticgwgamk.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5dWR3cnR5Z3p6dGljZ3dnYW1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0NjEwMDUsImV4cCI6MjA4MzAzNzAwNX0.R7186rMbp3jyhjKnLKvNs4LBUxkmBoBeZgcihgsK51g';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -422,7 +451,7 @@
         let isEditing = false;
         let imageMethod = 'file';
 
-        // Manejo de Métodos de Imagen
+        // Gestión de pestañas de método de imagen
         document.getElementById('btn-file-method').onclick = () => setMethod('file');
         document.getElementById('btn-url-method').onclick = () => setMethod('url');
 
@@ -430,100 +459,92 @@
             imageMethod = m;
             document.getElementById('btn-file-method').classList.toggle('active', m === 'file');
             document.getElementById('btn-url-method').classList.toggle('active', m === 'url');
-            document.getElementById('container-file').style.display = m === 'file' ? 'block' : 'none';
+            
+            document.getElementById('container-file').style.display = m === 'file' ? 'flex' : 'none';
+            document.getElementById('gallery-files').style.display = m === 'file' ? 'grid' : 'none';
+            
             document.getElementById('container-url').style.display = m === 'url' ? 'block' : 'none';
+            document.getElementById('gallery-urls').style.display = m === 'url' ? 'grid' : 'none';
         }
 
-        // Función para limpiar completamente el formulario y la interfaz
+        // Limpiar formulario
         function clearAll() {
             isEditing = false;
             document.getElementById('admin-form').reset();
             document.getElementById('edit-id').value = "";
-            document.getElementById('form-title').innerText = "Nuevo Tratamiento";
-            document.getElementById('form-desc').innerText = "Completa los datos para publicar un nuevo servicio.";
-            document.getElementById('btn-save').innerText = "Publicar Servicio";
+            document.getElementById('form-title').innerText = "Gestionar Tratamiento";
+            document.getElementById('btn-save').innerText = "Publicar Tratamiento";
             document.getElementById('btn-cancel-edit').style.display = 'none';
-            
-            // Limpiar etiquetas de archivo
-            document.getElementById('file-status').innerText = "CLICK PARA SUBIR FOTO";
-            
-            // Limpiar previsualización
-            document.getElementById('ui-img').style.display = 'none';
-            document.getElementById('ui-img').src = "";
-            document.getElementById('ui-placeholder').style.display = 'block';
-            document.getElementById('ui-name').innerText = "Tratamiento";
+            document.getElementById('file-status').innerText = "CLICK O ARRASTRA LA PORTADA";
+            document.getElementById('ui-img').src = "https://via.placeholder.com/400x300?text=Estética+Luisana";
+            document.getElementById('ui-name').innerText = "Nombre del Servicio";
             document.getElementById('ui-price').innerText = "$0";
-            
+            document.getElementById('ui-category').innerText = "CEJAS Y PESTAÑAS";
             setMethod('file');
         }
 
-        // Vista Previa Dinámica
+        // Live Preview
         document.getElementById('imagen-file').onchange = (e) => {
             const file = e.target.files[0];
             if (file) {
-                document.getElementById('file-status').innerText = file.name.toUpperCase();
+                document.getElementById('file-status').innerText = "✓ " + file.name.substring(0, 15) + "...";
                 const reader = new FileReader();
-                reader.onload = (ev) => {
-                    const img = document.getElementById('ui-img');
-                    img.src = ev.target.result;
-                    img.style.display = 'block';
-                    document.getElementById('ui-placeholder').style.display = 'none';
-                };
+                reader.onload = (ev) => document.getElementById('ui-img').src = ev.target.result;
                 reader.readAsDataURL(file);
             }
         };
 
         document.getElementById('imagen-url').oninput = (e) => {
-            const val = e.target.value;
-            const img = document.getElementById('ui-img');
-            if (val.startsWith('http')) {
-                img.src = val;
-                img.style.display = 'block';
-                document.getElementById('ui-placeholder').style.display = 'none';
-            }
+            if (e.target.value.startsWith('http')) document.getElementById('ui-img').src = e.target.value;
         };
 
+        // Mejora en la actualización de la categoría en la vista previa
         document.getElementById('admin-form').oninput = () => {
-            document.getElementById('ui-name').innerText = document.getElementById('nombre').value || 'Tratamiento';
-            const p = document.getElementById('precio').value || 0;
-            document.getElementById('ui-price').innerText = "$" + parseInt(p).toLocaleString();
+            document.getElementById('ui-name').innerText = document.getElementById('nombre').value || 'Nombre del Servicio';
+            const price = document.getElementById('precio').value || 0;
+            document.getElementById('ui-price').innerText = "$" + parseInt(price).toLocaleString();
+            
+            // Mostrar el texto elegante de la categoría, no el value interno
+            const catSelect = document.getElementById('categoria');
+            document.getElementById('ui-category').innerText = catSelect.options[catSelect.selectedIndex].text.toUpperCase();
         };
 
-        // CRUD: Cargar Lista
+        // Cargar Lista
         async function loadServices() {
             const listDiv = document.getElementById('product-list');
             const { data, error } = await supabaseClient.from('servicios').select('*').order('created_at', { ascending: false });
             
             if (error) {
-                listDiv.innerHTML = `<p style="color:red">Error: ${error.message}</p>`;
+                listDiv.innerHTML = `<p style="color:red">Error de conexión</p>`;
                 return;
             }
             
-            listDiv.innerHTML = data.length ? '' : '<p>No hay tratamientos publicados aún.</p>';
+            document.getElementById('counter').innerText = `${data.length} servicios`;
+            listDiv.innerHTML = data.length ? '' : '<p style="color:var(--text-muted)">No hay servicios registrados.</p>';
+            
             data.forEach(s => {
                 const item = document.createElement('div');
                 item.className = 'item-card';
                 item.innerHTML = `
-                    <img src="${s.imagen}" onerror="this.src='https://via.placeholder.com/100?text=Error'">
-                    <div class="item-info">
+                    <img src="${s.imagen}" onerror="this.src='https://via.placeholder.com/100?text=Luisana'">
+                    <div class="item-card-info">
                         <h4>${s.nombre}</h4>
                         <p>$${s.precio.toLocaleString()}</p>
+                        <small style="font-size:0.65rem; color:var(--text-muted)">${s.categoria.toUpperCase()}</small>
                     </div>
                     <div class="item-actions">
-                        <button class="action-btn edit-btn" onclick="prepareEdit('${s.id}')">EDITAR</button>
-                        <button class="action-btn delete-btn" onclick="deleteService('${s.id}')">BORRAR</button>
+                        <button class="btn-icon edit-icon" onclick="prepareEdit('${s.id}')">EDITAR</button>
+                        <button class="btn-icon delete-icon" onclick="deleteService('${s.id}')">BORRAR</button>
                     </div>
                 `;
                 listDiv.appendChild(item);
             });
         }
 
-        // CRUD: Preparar Edición
         async function prepareEdit(id) {
             isEditing = true;
             const { data, error } = await supabaseClient.from('servicios').select('*').eq('id', id).single();
-            
-            if (error) return alert("No se pudo cargar el servicio");
+            if (error) return;
 
             document.getElementById('edit-id').value = data.id;
             document.getElementById('nombre').value = data.nombre;
@@ -531,94 +552,97 @@
             document.getElementById('descuento').value = data.descuento;
             document.getElementById('categoria').value = data.categoria;
             
-            // Forzar URL para edición más fácil
             setMethod('url');
             document.getElementById('imagen-url').value = data.imagen;
+            document.getElementById('imagen1-url').value = data.imagen1 || '';
+            document.getElementById('imagen2-url').value = data.imagen2 || '';
+            document.getElementById('imagen3-url').value = data.imagen3 || '';
+            document.getElementById('imagen4-url').value = data.imagen4 || '';
+            document.getElementById('imagen5-url').value = data.imagen5 || '';
             
-            // Actualizar UI
-            document.getElementById('form-title').innerText = "Editando Tratamiento";
-            document.getElementById('form-desc').innerText = "Modifica los campos necesarios y guarda los cambios.";
-            document.getElementById('btn-save').innerText = "Actualizar Cambios";
+            document.getElementById('btn-save').innerText = "Guardar Cambios";
             document.getElementById('btn-cancel-edit').style.display = 'block';
+            document.getElementById('ui-img').src = data.imagen;
             
-            // Actualizar Vista Previa
+            // Forzar actualización de vista previa de categoría al editar
+            const catSelect = document.getElementById('categoria');
+            document.getElementById('ui-category').innerText = catSelect.options[catSelect.selectedIndex].text.toUpperCase();
             document.getElementById('ui-name').innerText = data.nombre;
             document.getElementById('ui-price').innerText = "$" + data.precio.toLocaleString();
-            document.getElementById('ui-img').src = data.imagen;
-            document.getElementById('ui-img').style.display = 'block';
-            document.getElementById('ui-placeholder').style.display = 'none';
-
+            
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // Cancelar Edición
-        document.getElementById('btn-cancel-edit').onclick = clearAll;
-
-        // CRUD: Eliminar
         async function deleteService(id) {
-            if (!confirm('¿Realmente deseas eliminar este tratamiento? Esta acción no se puede deshacer.')) return;
+            if (!confirm('¿Estás seguro de eliminar este servicio?')) return;
             const { error } = await supabaseClient.from('servicios').delete().eq('id', id);
             if (!error) loadServices();
         }
 
-        // CRUD: Guardar (Nuevo o Editar)
+        document.getElementById('btn-cancel-edit').onclick = clearAll;
+
+        // Proceso de Guardado
         document.getElementById('admin-form').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-save');
             const msg = document.getElementById('msg-box');
             
             btn.disabled = true;
-            btn.innerText = isEditing ? "Actualizando..." : "Publicando...";
             msg.style.display = 'none';
 
-            let imageUrl = document.getElementById('imagen-url').value;
-
             try {
-                // Subida de imagen si es por archivo
-                if (imageMethod === 'file') {
-                    const file = document.getElementById('imagen-file').files[0];
-                    if (file) {
-                        const fileName = `${Date.now()}-${file.name}`;
-                        const { error: uploadError } = await supabaseClient.storage.from('imagenes').upload(fileName, file);
-                        if (uploadError) throw new Error("Error al subir la foto a Supabase Storage.");
-                        const { data: urlData } = supabaseClient.storage.from('imagenes').getPublicUrl(fileName);
-                        imageUrl = urlData.publicUrl;
-                    } else if (!isEditing) {
-                        throw new Error("Se requiere una imagen para publicar.");
+                const imgFields = ['imagen', 'imagen1', 'imagen2', 'imagen3', 'imagen4', 'imagen5'];
+                const urls = {};
+
+                for (const field of imgFields) {
+                    let finalUrl = '';
+                    if (imageMethod === 'file') {
+                        const inputId = field === 'imagen' ? 'imagen-file' : `${field}-file`;
+                        const file = document.getElementById(inputId).files[0];
+                        if (file) {
+                            const ext = file.name.split('.').pop();
+                            const fileName = `serv-${Date.now()}-${field}.${ext}`;
+                            const { error: upErr } = await supabaseClient.storage.from('imagenes').upload(fileName, file);
+                            if (upErr) throw upErr;
+                            const { data } = supabaseClient.storage.from('imagenes').getPublicUrl(fileName);
+                            finalUrl = data.publicUrl;
+                        }
+                    } else {
+                        const inputId = field === 'imagen' ? 'imagen-url' : `${field}-url`;
+                        finalUrl = document.getElementById(inputId).value;
                     }
+                    urls[field] = finalUrl;
                 }
+
+                if (!urls.imagen && !isEditing) throw new Error("La imagen de portada es obligatoria");
 
                 const payload = {
                     nombre: document.getElementById('nombre').value,
                     precio: parseFloat(document.getElementById('precio').value),
                     descuento: parseInt(document.getElementById('descuento').value) || 0,
                     categoria: document.getElementById('categoria').value,
-                    imagen: imageUrl
+                    ...urls
                 };
 
-                if (isEditing) {
-                    const id = document.getElementById('edit-id').value;
-                    const { error: updateError } = await supabaseClient.from('servicios').update(payload).eq('id', id);
-                    if (updateError) throw updateError;
-                    msg.innerText = "✓ ¡Tratamiento actualizado con éxito!";
-                } else {
-                    const { error: insertError } = await supabaseClient.from('servicios').insert([payload]);
-                    if (insertError) throw insertError;
-                    msg.innerText = "✓ ¡Tratamiento publicado con éxito!";
-                }
+                if (isEditing && !urls.imagen) delete payload.imagen;
 
-                msg.className = "msg success";
-                
-                // Limpiar todo después de una subida exitosa
+                const query = isEditing 
+                    ? supabaseClient.from('servicios').update(payload).eq('id', document.getElementById('edit-id').value)
+                    : supabaseClient.from('servicios').insert([payload]);
+
+                const { error: dbErr } = await query;
+                if (dbErr) throw dbErr;
+
+                msg.innerText = isEditing ? "✓ Cambios guardados correctamente" : "✓ Tratamiento publicado con éxito";
+                msg.className = "alert alert-success";
                 clearAll();
                 loadServices();
 
             } catch (err) {
-                msg.innerHTML = `⚠️ ${err.message}`;
-                msg.className = "msg error";
+                msg.innerHTML = `⚠️ Error: ${err.message}`;
+                msg.className = "alert alert-error";
             } finally {
                 btn.disabled = false;
-                btn.innerText = isEditing ? "Actualizar Cambios" : "Publicar Servicio";
             }
         };
 
