@@ -434,6 +434,29 @@
             document.getElementById('container-url').style.display = m === 'url' ? 'block' : 'none';
         }
 
+        // Función para limpiar completamente el formulario y la interfaz
+        function clearAll() {
+            isEditing = false;
+            document.getElementById('admin-form').reset();
+            document.getElementById('edit-id').value = "";
+            document.getElementById('form-title').innerText = "Nuevo Tratamiento";
+            document.getElementById('form-desc').innerText = "Completa los datos para publicar un nuevo servicio.";
+            document.getElementById('btn-save').innerText = "Publicar Servicio";
+            document.getElementById('btn-cancel-edit').style.display = 'none';
+            
+            // Limpiar etiquetas de archivo
+            document.getElementById('file-status').innerText = "CLICK PARA SUBIR FOTO";
+            
+            // Limpiar previsualización
+            document.getElementById('ui-img').style.display = 'none';
+            document.getElementById('ui-img').src = "";
+            document.getElementById('ui-placeholder').style.display = 'block';
+            document.getElementById('ui-name').innerText = "Tratamiento";
+            document.getElementById('ui-price').innerText = "$0";
+            
+            setMethod('file');
+        }
+
         // Vista Previa Dinámica
         document.getElementById('imagen-file').onchange = (e) => {
             const file = e.target.files[0];
@@ -529,17 +552,7 @@
         }
 
         // Cancelar Edición
-        document.getElementById('btn-cancel-edit').onclick = () => {
-            isEditing = false;
-            document.getElementById('admin-form').reset();
-            document.getElementById('form-title').innerText = "Nuevo Tratamiento";
-            document.getElementById('form-desc').innerText = "Completa los datos para publicar un nuevo servicio.";
-            document.getElementById('btn-save').innerText = "Publicar Servicio";
-            document.getElementById('btn-cancel-edit').style.display = 'none';
-            document.getElementById('ui-img').style.display = 'none';
-            document.getElementById('ui-placeholder').style.display = 'block';
-            setMethod('file');
-        };
+        document.getElementById('btn-cancel-edit').onclick = clearAll;
 
         // CRUD: Eliminar
         async function deleteService(id) {
@@ -595,7 +608,9 @@
                 }
 
                 msg.className = "msg success";
-                document.getElementById('btn-cancel-edit').click(); // Reset form
+                
+                // Limpiar todo después de una subida exitosa
+                clearAll();
                 loadServices();
 
             } catch (err) {
