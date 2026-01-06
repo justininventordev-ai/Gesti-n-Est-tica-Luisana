@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Control | Estética Luisana</title>
     
-    <!-- Librería de Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Librería de Supabase (Versión específica para mayor estabilidad) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 
     <!-- Fuentes de Google -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -574,7 +574,7 @@
 
             <aside class="preview-pane">
                 <div class="preview-card">
-                    <img src="https://via.placeholder.com/400x300?text=Estética+Luisana" id="ui-img" class="preview-img">
+                    <img src="https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=400&q=80" id="ui-img" class="preview-img" onerror="this.src='https://via.placeholder.com/400x300?text=Luisana'">
                     <div class="preview-content">
                         <div class="preview-category" id="ui-category">CEJAS Y PESTAÑAS</div>
                         <h3 class="preview-name" id="ui-name">Nombre del Servicio</h3>
@@ -603,7 +603,16 @@
     <script>
         const SUPABASE_URL = 'https://xyudwrtygzzticgwgamk.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5dWR3cnR5Z3p6dGljZ3dnYW1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0NjEwMDUsImV4cCI6MjA4MzAzNzAwNX0.R7186rMbp3jyhjKnLKvNs4LBUxkmBoBeZgcihgsK51g';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Inicialización segura del cliente
+        let supabaseClient;
+        try {
+            if (typeof supabase !== 'undefined') {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            }
+        } catch (e) {
+            console.error("Error al inicializar Supabase:", e);
+        }
 
         let isEditing = false;
         let imageMethod = 'file';
@@ -712,7 +721,7 @@
             document.getElementById('btn-text').innerText = "Publicar Tratamiento";
             document.getElementById('btn-cancel-edit').style.display = 'none';
             document.getElementById('file-status').innerText = "CLICK O ARRASTRA LA PORTADA";
-            document.getElementById('ui-img').src = "https://via.placeholder.com/400x300?text=Estética+Luisana";
+            document.getElementById('ui-img').src = "https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=400";
             document.getElementById('ui-name').innerText = "Nombre del Servicio";
             document.getElementById('ui-desc').innerText = "Descripción breve del tratamiento...";
             document.getElementById('ui-price').innerText = "$0";
@@ -799,87 +808,116 @@
 
         async function loadServices() {
             const listDiv = document.getElementById('product-list');
-            const { data, error } = await supabaseClient.from('servicios').select('*').order('created_at', { ascending: false });
-            if (error) return;
-            document.getElementById('inventory-search').value = ''; 
-            document.getElementById('counter').innerText = `${data.length} servicios`;
-            listDiv.innerHTML = data.length ? '' : '<p style="color:var(--text-muted)">No hay servicios registrados.</p>';
-            data.forEach(s => {
-                const item = document.createElement('div');
-                item.className = 'item-card';
-                item.innerHTML = `
-                    <img src="${s.imagen}" onerror="this.src='https://via.placeholder.com/100?text=Luisana'">
-                    <div class="item-card-info">
-                        <h4>${s.nombre}</h4>
-                        <p>$${s.precio.toLocaleString()}</p>
-                        <span>Stock: ${s.stock || '0'}</span><br>
-                        <small style="font-size:0.65rem; color:var(--text-muted)">${s.categoria.toUpperCase()}</small>
-                    </div>
-                    <div class="item-actions">
-                        <button class="btn-icon edit-icon" onclick="prepareEdit('${s.id}')">EDITAR</button>
-                        <button class="btn-icon delete-icon" onclick="requestDelete('${s.id}')">BORRAR</button>
-                    </div>
-                `;
-                listDiv.appendChild(item);
-            });
+            
+            if (!supabaseClient) {
+                listDiv.innerHTML = `<p style="padding: 2rem; color: var(--primary); text-align: center;">Error: No se pudo conectar con el servidor (DNS Error).</p>`;
+                return;
+            }
+
+            try {
+                const { data, error } = await supabaseClient.from('servicios').select('*').order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                document.getElementById('inventory-search').value = ''; 
+                document.getElementById('counter').innerText = `${data.length} servicios`;
+                listDiv.innerHTML = data.length ? '' : '<p style="color:var(--text-muted)">No hay servicios registrados.</p>';
+                
+                data.forEach(s => {
+                    const item = document.createElement('div');
+                    item.className = 'item-card';
+                    item.innerHTML = `
+                        <img src="${s.imagen}" onerror="this.src='https://via.placeholder.com/100?text=Luisana'">
+                        <div class="item-card-info">
+                            <h4>${s.nombre}</h4>
+                            <p>$${s.precio.toLocaleString()}</p>
+                            <span>Stock: ${s.stock || '0'}</span><br>
+                            <small style="font-size:0.65rem; color:var(--text-muted)">${s.categoria.toUpperCase()}</small>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn-icon edit-icon" onclick="prepareEdit('${s.id}')">EDITAR</button>
+                            <button class="btn-icon delete-icon" onclick="requestDelete('${s.id}')">BORRAR</button>
+                        </div>
+                    `;
+                    listDiv.appendChild(item);
+                });
+            } catch (err) {
+                console.error("Fetch error:", err);
+                listDiv.innerHTML = `<p style="padding: 2rem; color: var(--primary); text-align: center;">Error de conexión: No se pudo resolver la dirección del servidor de base de datos.</p>`;
+            }
         }
 
         async function prepareEdit(id) {
+            if (!supabaseClient) return;
             isEditing = true;
-            const { data, error } = await supabaseClient.from('servicios').select('*').eq('id', id).single();
-            if (error) return;
-            document.getElementById('edit-id').value = data.id;
-            document.getElementById('nombre').value = data.nombre;
-            document.getElementById('precio').value = data.precio;
-            document.getElementById('descuento').value = data.descuento;
-            document.getElementById('categoria').value = data.categoria;
-            document.getElementById('stock').value = data.stock || '0';
-            document.getElementById('desc').value = data.desc || '';
-            document.getElementById('imagen-url').value = data.imagen;
-            for(let i=1; i<=5; i++) {
-                document.getElementById(`imagen${i}-url`).value = data[`imagen${i}`] || '';
-            }
-            const mainPrev = document.getElementById('file-preview-main');
-            if (data.imagen) {
-                mainPrev.src = data.imagen;
-                mainPrev.style.display = 'block';
-                document.getElementById('file-status').innerText = "IMAGEN ACTUAL CARGADA";
-            }
-            for(let i=1; i<=5; i++) {
-                const url = data[`imagen${i}`];
-                const box = document.getElementById(`preview-box-${i}`);
-                if (url) {
-                    const existingImg = box.querySelector('img');
-                    if (existingImg) existingImg.remove();
-                    const img = document.createElement('img');
-                    img.src = url;
-                    box.appendChild(img);
-                    box.classList.add('has-file');
-                    box.querySelector('i').style.display = 'none';
-                } else {
-                    box.classList.remove('has-file');
-                    const img = box.querySelector('img');
-                    if (img) img.remove();
-                    box.querySelector('i').style.display = 'block';
+            try {
+                const { data, error } = await supabaseClient.from('servicios').select('*').eq('id', id).single();
+                if (error) throw error;
+
+                document.getElementById('edit-id').value = data.id;
+                document.getElementById('nombre').value = data.nombre;
+                document.getElementById('precio').value = data.precio;
+                document.getElementById('descuento').value = data.descuento;
+                document.getElementById('categoria').value = data.categoria;
+                document.getElementById('stock').value = data.stock || '0';
+                document.getElementById('desc').value = data.desc || '';
+                
+                document.getElementById('imagen-url').value = data.imagen;
+                for(let i=1; i<=5; i++) {
+                    document.getElementById(`imagen${i}-url`).value = data[`imagen${i}`] || '';
                 }
+
+                const mainPrev = document.getElementById('file-preview-main');
+                if (data.imagen) {
+                    mainPrev.src = data.imagen;
+                    mainPrev.style.display = 'block';
+                    document.getElementById('file-status').innerText = "IMAGEN ACTUAL CARGADA";
+                }
+
+                for(let i=1; i<=5; i++) {
+                    const url = data[`imagen${i}`];
+                    const box = document.getElementById(`preview-box-${i}`);
+                    if (url) {
+                        const existingImg = box.querySelector('img');
+                        if (existingImg) existingImg.remove();
+                        const img = document.createElement('img');
+                        img.src = url;
+                        box.appendChild(img);
+                        box.classList.add('has-file');
+                        box.querySelector('i').style.display = 'none';
+                    } else {
+                        box.classList.remove('has-file');
+                        const img = box.querySelector('img');
+                        if (img) img.remove();
+                        box.querySelector('i').style.display = 'block';
+                    }
+                }
+                
+                document.getElementById('btn-save').innerText = "Guardar Cambios";
+                document.getElementById('btn-text').innerText = "Guardar Cambios";
+                document.getElementById('btn-cancel-edit').style.display = 'block';
+                document.getElementById('ui-img').src = data.imagen;
+                
+                const catSelect = document.getElementById('categoria');
+                document.getElementById('ui-category').innerText = catSelect.options[catSelect.selectedIndex].text.toUpperCase();
+                document.getElementById('ui-name').innerText = data.nombre;
+                document.getElementById('ui-desc').innerText = data.desc || 'Descripción breve del tratamiento...';
+                document.getElementById('ui-price').innerText = "$" + data.precio.toLocaleString();
+                
+                setMethod('url');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (err) {
+                console.error("Edit load error:", err);
             }
-            document.getElementById('btn-save').innerText = "Guardar Cambios";
-            document.getElementById('btn-text').innerText = "Guardar Cambios";
-            document.getElementById('btn-cancel-edit').style.display = 'block';
-            document.getElementById('ui-img').src = data.imagen;
-            const catSelect = document.getElementById('categoria');
-            document.getElementById('ui-category').innerText = catSelect.options[catSelect.selectedIndex].text.toUpperCase();
-            document.getElementById('ui-name').innerText = data.nombre;
-            document.getElementById('ui-desc').innerText = data.desc || 'Descripción breve del tratamiento...';
-            document.getElementById('ui-price').innerText = "$" + data.precio.toLocaleString();
-            setMethod('url');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function requestDelete(id) {
             openPINModal("Confirmar Eliminación", "¿Estás seguro de borrar este servicio?", CONFIG_SEC.pinDelete, async () => {
-                const { error } = await supabaseClient.from('servicios').delete().eq('id', id);
-                if (!error) loadServices();
+                try {
+                    const { error } = await supabaseClient.from('servicios').delete().eq('id', id);
+                    if (error) throw error;
+                    loadServices();
+                } catch (e) { console.error(e); }
             });
         }
 
@@ -892,6 +930,11 @@
 
         // --- LÓGICA DE GUARDADO CON BARRA DE CARGA CORREGIDA ---
         async function executeSave() {
+            if (!supabaseClient) {
+                alert("El sistema de base de datos no está disponible actualmente.");
+                return;
+            }
+
             const btn = document.getElementById('btn-save');
             const btnText = document.getElementById('btn-text');
             const progressOverlay = document.getElementById('save-progress');
@@ -915,14 +958,14 @@
                 for (let i = 0; i < imgFields.length; i++) {
                     const field = imgFields[i];
                     let finalUrl = '';
-                    const stepPercent = 10 + (i * 12); // Progresión manual por imagen
+                    const stepPercent = 10 + (i * 12);
 
                     if (imageMethod === 'file') {
                         const inputId = field === 'imagen' ? 'imagen-file' : `${field}-file`;
                         const file = document.getElementById(inputId).files[0];
                         
                         if (file) {
-                            updateProgress(stepPercent, `Subiendo ${field === 'imagen' ? 'Portada' : 'Imagen ' + field.slice(-1)}...`);
+                            updateProgress(stepPercent, `Subiendo ${field === 'imagen' ? 'Portada' : 'Imagen ' + (i)}...`);
                             const ext = file.name.split('.').pop();
                             const fileName = `serv-${Date.now()}-${field}.${ext}`;
                             const { error: upErr } = await supabaseClient.storage.from('imagenes').upload(fileName, file);
@@ -930,7 +973,6 @@
                             const { data } = supabaseClient.storage.from('imagenes').getPublicUrl(fileName);
                             finalUrl = data.publicUrl;
                         } else if (isEditing) {
-                            // Obtener URL de la previsualización si existe
                             const prevElement = field === 'imagen' ? document.getElementById('file-preview-main') : document.querySelector(`#preview-box-${field.slice(-1)} img`);
                             if (prevElement && prevElement.src && !prevElement.src.startsWith('blob:')) {
                                 finalUrl = prevElement.src;
@@ -953,12 +995,11 @@
                     precio: parseFloat(document.getElementById('precio').value),
                     descuento: parseInt(document.getElementById('descuento').value) || 0,
                     categoria: document.getElementById('categoria').value,
-                    stock: document.getElementById('stock').value || '0', // Asegurar que stock vaya como texto
+                    stock: document.getElementById('stock').value || '0',
                     desc: document.getElementById('desc').value,
                     ...urls
                 };
 
-                // Limpiar campos nulos al editar para no sobrescribir con vacío
                 if (isEditing) {
                     imgFields.forEach(f => { if(!urls[f]) delete payload[f]; });
                 }
@@ -980,8 +1021,8 @@
                 }, 800);
 
             } catch (err) {
-                console.error(err);
-                msg.innerHTML = `⚠️ Error: ${err.message}`;
+                console.error("Save error:", err);
+                msg.innerHTML = `⚠️ Error de red o configuración: No se pudo conectar con el servidor.`;
                 msg.className = "alert alert-error";
                 btnText.innerText = isEditing ? "Guardar Cambios" : "Publicar Tratamiento";
                 progressOverlay.style.width = '0%';
