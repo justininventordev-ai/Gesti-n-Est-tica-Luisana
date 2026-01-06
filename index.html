@@ -283,8 +283,9 @@
         .gallery-item .mini-upload i { font-size: 0.8rem; color: var(--text-muted); position: relative; z-index: 1; }
         .gallery-item .mini-upload img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; z-index: 1; }
 
-        /* --- Buttons --- */
+        /* --- Buttons & Loading Bar --- */
         .btn-primary {
+            position: relative;
             width: 100%;
             padding: 1rem;
             border: none;
@@ -296,9 +297,22 @@
             cursor: pointer;
             transition: 0.3s;
             box-shadow: 0 4px 12px rgba(219, 39, 119, 0.3);
+            overflow: hidden;
         }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(219, 39, 119, 0.4); }
-        .btn-primary:disabled { opacity: 0.7; transform: none; cursor: wait; }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(219, 39, 119, 0.4); }
+        
+        .btn-progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.4);
+            width: 0%;
+            transition: width 0.4s ease;
+            display: none;
+        }
+        
+        .btn-primary:disabled { opacity: 0.9; cursor: wait; }
 
         .btn-cancel {
             width: 100%;
@@ -540,7 +554,10 @@
                     </div>
 
                     <div style="margin-top: 2rem;">
-                        <button type="submit" class="btn-primary" id="btn-save">Publicar Tratamiento</button>
+                        <button type="submit" class="btn-primary" id="btn-save">
+                            <span id="btn-text">Publicar Tratamiento</span>
+                            <div class="btn-progress-bar" id="save-progress"></div>
+                        </button>
                         <button type="button" class="btn-cancel" id="btn-cancel-edit" style="display: none;">Cancelar edición</button>
                     </div>
                 </form>
@@ -684,6 +701,7 @@
             document.getElementById('edit-id').value = "";
             document.getElementById('form-title').innerText = "Gestionar Tratamiento";
             document.getElementById('btn-save').innerText = "Publicar Tratamiento";
+            document.getElementById('btn-text').innerText = "Publicar Tratamiento";
             document.getElementById('btn-cancel-edit').style.display = 'none';
             document.getElementById('file-status').innerText = "CLICK O ARRASTRA LA PORTADA";
             document.getElementById('ui-img').src = "https://via.placeholder.com/400x300?text=Estética+Luisana";
@@ -695,6 +713,9 @@
             const mainPrev = document.getElementById('file-preview-main');
             mainPrev.style.display = 'none';
             mainPrev.src = '';
+            
+            document.getElementById('save-progress').style.width = '0%';
+            document.getElementById('save-progress').style.display = 'none';
             
             document.querySelectorAll('.mini-upload').forEach(box => {
                 box.classList.remove('has-file');
@@ -738,11 +759,9 @@
             const query = e.target.value.toLowerCase().trim();
             const cards = document.querySelectorAll('.item-card');
             let foundCount = 0;
-
             cards.forEach(card => {
                 const name = card.querySelector('h4').innerText.toLowerCase();
                 const category = card.querySelector('small').innerText.toLowerCase();
-                
                 if (name.includes(query) || category.includes(query)) {
                     card.classList.remove('hidden');
                     foundCount++;
@@ -750,14 +769,10 @@
                     card.classList.add('hidden');
                 }
             });
-
             document.getElementById('counter').innerText = `${foundCount} servicios encontrados`;
-            
-            // Mostrar mensaje si no hay resultados
             const listDiv = document.getElementById('product-list');
             const noResultsMsgId = 'search-no-results';
             let noResultsMsg = document.getElementById(noResultsMsgId);
-            
             if (foundCount === 0) {
                 if (!noResultsMsg) {
                     noResultsMsg = document.createElement('p');
@@ -779,11 +794,9 @@
             const listDiv = document.getElementById('product-list');
             const { data, error } = await supabaseClient.from('servicios').select('*').order('created_at', { ascending: false });
             if (error) return;
-            
-            document.getElementById('inventory-search').value = ''; // Limpiar búsqueda al cargar
+            document.getElementById('inventory-search').value = ''; 
             document.getElementById('counter').innerText = `${data.length} servicios`;
             listDiv.innerHTML = data.length ? '' : '<p style="color:var(--text-muted)">No hay servicios registrados.</p>';
-            
             data.forEach(s => {
                 const item = document.createElement('div');
                 item.className = 'item-card';
@@ -808,7 +821,6 @@
             isEditing = true;
             const { data, error } = await supabaseClient.from('servicios').select('*').eq('id', id).single();
             if (error) return;
-
             document.getElementById('edit-id').value = data.id;
             document.getElementById('nombre').value = data.nombre;
             document.getElementById('precio').value = data.precio;
@@ -816,19 +828,16 @@
             document.getElementById('categoria').value = data.categoria;
             document.getElementById('stock').value = data.stock || '0';
             document.getElementById('desc').value = data.desc || '';
-            
             document.getElementById('imagen-url').value = data.imagen;
             for(let i=1; i<=5; i++) {
                 document.getElementById(`imagen${i}-url`).value = data[`imagen${i}`] || '';
             }
-
             const mainPrev = document.getElementById('file-preview-main');
             if (data.imagen) {
                 mainPrev.src = data.imagen;
                 mainPrev.style.display = 'block';
                 document.getElementById('file-status').innerText = "IMAGEN ACTUAL CARGADA";
             }
-
             for(let i=1; i<=5; i++) {
                 const url = data[`imagen${i}`];
                 const box = document.getElementById(`preview-box-${i}`);
@@ -847,49 +856,51 @@
                     box.querySelector('i').style.display = 'block';
                 }
             }
-            
             document.getElementById('btn-save').innerText = "Guardar Cambios";
+            document.getElementById('btn-text').innerText = "Guardar Cambios";
             document.getElementById('btn-cancel-edit').style.display = 'block';
             document.getElementById('ui-img').src = data.imagen;
-            
             const catSelect = document.getElementById('categoria');
             document.getElementById('ui-category').innerText = catSelect.options[catSelect.selectedIndex].text.toUpperCase();
             document.getElementById('ui-name').innerText = data.nombre;
             document.getElementById('ui-desc').innerText = data.desc || 'Descripción breve del tratamiento...';
             document.getElementById('ui-price').innerText = "$" + data.precio.toLocaleString();
-            
             setMethod('url');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function requestDelete(id) {
-            openPINModal(
-                "Confirmar Eliminación", 
-                "¿Estás seguro de borrar este servicio permanentemente?", 
-                CONFIG_SEC.pinDelete, 
-                async () => {
-                    const { error } = await supabaseClient.from('servicios').delete().eq('id', id);
-                    if (!error) loadServices();
-                }
-            );
+            openPINModal("Confirmar Eliminación", "¿Estás seguro de borrar este servicio?", CONFIG_SEC.pinDelete, async () => {
+                const { error } = await supabaseClient.from('servicios').delete().eq('id', id);
+                if (!error) loadServices();
+            });
         }
 
         document.getElementById('admin-form').onsubmit = async (e) => {
             e.preventDefault();
-            const actionTitle = isEditing ? "Confirmar Edición" : "Confirmar Publicación";
-            const actionDesc = isEditing ? "Ingresa el PIN para actualizar los datos." : "Ingresa el PIN para publicar el servicio.";
-            openPINModal(actionTitle, actionDesc, CONFIG_SEC.pinAction, async () => executeSave());
+            const title = isEditing ? "Confirmar Edición" : "Confirmar Publicación";
+            const desc = isEditing ? "Ingresa el PIN para actualizar." : "Ingresa el PIN para publicar.";
+            openPINModal(title, desc, CONFIG_SEC.pinAction, async () => executeSave());
         };
 
+        // --- LÓGICA DE GUARDADO CON BARRA DE PROGRESO ---
         async function executeSave() {
             const btn = document.getElementById('btn-save');
+            const btnText = document.getElementById('btn-text');
+            const progress = document.getElementById('save-progress');
             const msg = document.getElementById('msg-box');
+            
             btn.disabled = true;
             msg.style.display = 'none';
+            progress.style.display = 'block';
+            progress.style.width = '5%';
+            btnText.innerText = "Preparando...";
 
             try {
                 const imgFields = ['imagen', 'imagen1', 'imagen2', 'imagen3', 'imagen4', 'imagen5'];
                 const urls = {};
+                let completedSteps = 0;
+                const totalSteps = imgFields.length + 1; // +1 por el guardado en DB
 
                 for (const field of imgFields) {
                     let finalUrl = '';
@@ -897,6 +908,7 @@
                         const inputId = field === 'imagen' ? 'imagen-file' : `${field}-file`;
                         const file = document.getElementById(inputId).files[0];
                         if (file) {
+                            btnText.innerText = `Subiendo ${field === 'imagen' ? 'Portada' : 'Imagen ' + field.slice(-1)}...`;
                             const ext = file.name.split('.').pop();
                             const fileName = `serv-${Date.now()}-${field}.${ext}`;
                             const { error: upErr } = await supabaseClient.storage.from('imagenes').upload(fileName, file);
@@ -914,10 +926,14 @@
                         finalUrl = document.getElementById(inputId).value;
                     }
                     urls[field] = finalUrl;
+                    
+                    completedSteps++;
+                    progress.style.width = `${(completedSteps / totalSteps) * 100}%`;
                 }
 
                 if (!urls.imagen && !isEditing) throw new Error("La imagen de portada es obligatoria");
 
+                btnText.innerText = "Guardando datos...";
                 const payload = {
                     nombre: document.getElementById('nombre').value,
                     precio: parseFloat(document.getElementById('precio').value),
@@ -939,13 +955,22 @@
                 const { error: dbErr } = await query;
                 if (dbErr) throw dbErr;
 
-                msg.innerText = isEditing ? "✓ Cambios guardados correctamente" : "✓ Tratamiento publicado con éxito";
-                msg.className = "alert alert-success";
-                clearAll();
-                loadServices();
+                progress.style.width = '100%';
+                btnText.innerText = "¡Completado!";
+
+                setTimeout(() => {
+                    msg.innerText = isEditing ? "✓ Cambios guardados correctamente" : "✓ Tratamiento publicado con éxito";
+                    msg.className = "alert alert-success";
+                    clearAll();
+                    loadServices();
+                }, 500);
+
             } catch (err) {
                 msg.innerHTML = `⚠️ Error: ${err.message}`;
                 msg.className = "alert alert-error";
+                btnText.innerText = isEditing ? "Guardar Cambios" : "Publicar Tratamiento";
+                progress.style.display = 'none';
+                progress.style.width = '0%';
             } finally {
                 btn.disabled = false;
             }
@@ -954,9 +979,8 @@
         window.onload = () => {
             setupMiniPreviews();
             const session = localStorage.getItem(CONFIG_SEC.storageKey);
-            if (session === "active") {
-                unlockPanel();
-            } else {
+            if (session === "active") unlockPanel();
+            else {
                 document.getElementById('main-content').style.display = 'none';
                 document.getElementById('login-overlay').style.display = 'flex';
             }
