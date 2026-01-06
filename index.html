@@ -604,7 +604,6 @@
         const SUPABASE_URL = 'https://xyudwrtygzzticgwgamk.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5dWR3cnR5Z3p6dGljZ3dnYW1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0NjEwMDUsImV4cCI6MjA4MzAzNzAwNX0.R7186rMbp3jyhjKnLKvNs4LBUxkmBoBeZgcihgsK51g';
         
-        // Inicialización segura del cliente
         let supabaseClient;
         try {
             if (typeof supabase !== 'undefined') {
@@ -625,6 +624,12 @@
             storageKey: "estetica_luisana_session"
         };
 
+        // Auxiliar para actualizar texto de forma segura
+        const safeText = (id, text) => {
+            const el = document.getElementById(id);
+            if (el) el.innerText = text;
+        };
+
         function checkMasterLogin() {
             const pass = document.getElementById('master-password').value;
             const error = document.getElementById('login-error');
@@ -638,8 +643,10 @@
         }
 
         function unlockPanel() {
-            document.getElementById('login-overlay').style.display = 'none';
-            document.getElementById('main-content').style.display = 'block';
+            const overlay = document.getElementById('login-overlay');
+            const content = document.getElementById('main-content');
+            if (overlay) overlay.style.display = 'none';
+            if (content) content.style.display = 'block';
             loadServices();
         }
 
@@ -653,27 +660,33 @@
             const pinInput = document.getElementById('pin-input');
             const pinError = document.getElementById('pin-error');
             
-            document.getElementById('pin-modal-title').innerText = title;
-            document.getElementById('pin-modal-desc').innerText = desc;
+            const titleEl = document.getElementById('pin-modal-title');
+            const descEl = document.getElementById('pin-modal-desc');
             
-            pinInput.value = "";
-            pinError.style.display = 'none';
-            modal.style.display = 'flex';
-            pinInput.focus();
+            if (titleEl) titleEl.innerText = title;
+            if (descEl) descEl.innerText = desc;
+            
+            if (pinInput) pinInput.value = "";
+            if (pinError) pinError.style.display = 'none';
+            if (modal) modal.style.display = 'flex';
+            if (pinInput) pinInput.focus();
 
             document.getElementById('pin-confirm-btn').onclick = () => {
                 if (pinInput.value === correctPIN) {
                     closePINModal();
                     onConfirm();
                 } else {
-                    pinError.style.display = 'block';
-                    setTimeout(() => pinError.style.display = 'none', 1500);
+                    if (pinError) {
+                        pinError.style.display = 'block';
+                        setTimeout(() => pinError.style.display = 'none', 1500);
+                    }
                 }
             };
         }
 
         function closePINModal() {
-            document.getElementById('pin-modal').style.display = 'none';
+            const modal = document.getElementById('pin-modal');
+            if (modal) modal.style.display = 'none';
         }
 
         // --- GESTIÓN DE INTERFAZ ---
@@ -715,29 +728,43 @@
 
         function clearAll() {
             isEditing = false;
-            document.getElementById('admin-form').reset();
-            document.getElementById('edit-id').value = "";
-            document.getElementById('form-title').innerText = "Gestionar Tratamiento";
-            document.getElementById('btn-text').innerText = "Publicar Tratamiento";
-            document.getElementById('btn-cancel-edit').style.display = 'none';
-            document.getElementById('file-status').innerText = "CLICK O ARRASTRA LA PORTADA";
-            document.getElementById('ui-img').src = "https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=400";
-            document.getElementById('ui-name').innerText = "Nombre del Servicio";
-            document.getElementById('ui-desc').innerText = "Descripción breve del tratamiento...";
-            document.getElementById('ui-price').innerText = "$0";
-            document.getElementById('ui-category').innerText = "CEJAS Y PESTAÑAS";
+            const form = document.getElementById('admin-form');
+            if (form) form.reset();
+            
+            const editId = document.getElementById('edit-id');
+            if (editId) editId.value = "";
+            
+            safeText('form-title', "Gestionar Tratamiento");
+            safeText('btn-text', "Publicar Tratamiento");
+            
+            const cancelBtn = document.getElementById('btn-cancel-edit');
+            if (cancelBtn) cancelBtn.style.display = 'none';
+            
+            safeText('file-status', "CLICK O ARRASTRA LA PORTADA");
+            
+            const uiImg = document.getElementById('ui-img');
+            if (uiImg) uiImg.src = "https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=400";
+            
+            safeText('ui-name', "Nombre del Servicio");
+            safeText('ui-desc', "Descripción breve del tratamiento...");
+            safeText('ui-price', "$0");
+            safeText('ui-category', "CEJAS Y PESTAÑAS");
             
             const mainPrev = document.getElementById('file-preview-main');
-            mainPrev.style.display = 'none';
-            mainPrev.src = '';
+            if (mainPrev) {
+                mainPrev.style.display = 'none';
+                mainPrev.src = '';
+            }
             
-            document.getElementById('save-progress').style.width = '0%';
+            const progress = document.getElementById('save-progress');
+            if (progress) progress.style.width = '0%';
             
             document.querySelectorAll('.mini-upload').forEach(box => {
                 box.classList.remove('has-file');
                 const img = box.querySelector('img');
                 if (img) img.remove();
-                box.querySelector('i').style.display = 'block';
+                const icon = box.querySelector('i');
+                if (icon) icon.style.display = 'block';
             });
             setMethod('file');
         }
@@ -746,28 +773,34 @@
             const file = e.target.files[0];
             const preview = document.getElementById('file-preview-main');
             if (file) {
-                document.getElementById('file-status').innerText = "✓ " + file.name.substring(0, 15) + "...";
+                safeText('file-status', "✓ " + file.name.substring(0, 15) + "...");
                 const reader = new FileReader();
                 reader.onload = (ev) => {
-                    document.getElementById('ui-img').src = ev.target.result;
-                    preview.src = ev.target.result;
-                    preview.style.display = 'block';
+                    const uiImg = document.getElementById('ui-img');
+                    if (uiImg) uiImg.src = ev.target.result;
+                    if (preview) {
+                        preview.src = ev.target.result;
+                        preview.style.display = 'block';
+                    }
                 };
                 reader.readAsDataURL(file);
             }
         };
 
         document.getElementById('imagen-url').oninput = (e) => {
-            if (e.target.value.startsWith('http')) document.getElementById('ui-img').src = e.target.value;
+            const uiImg = document.getElementById('ui-img');
+            if (e.target.value.startsWith('http') && uiImg) uiImg.src = e.target.value;
         };
 
         document.getElementById('admin-form').oninput = () => {
-            document.getElementById('ui-name').innerText = document.getElementById('nombre').value || 'Nombre del Servicio';
-            document.getElementById('ui-desc').innerText = document.getElementById('desc').value || 'Descripción breve del tratamiento...';
+            safeText('ui-name', document.getElementById('nombre').value || 'Nombre del Servicio');
+            safeText('ui-desc', document.getElementById('desc').value || 'Descripción breve del tratamiento...');
             const price = document.getElementById('precio').value || 0;
-            document.getElementById('ui-price').innerText = "$" + parseInt(price).toLocaleString();
+            safeText('ui-price', "$" + parseInt(price).toLocaleString());
             const catSelect = document.getElementById('categoria');
-            document.getElementById('ui-category').innerText = catSelect.options[catSelect.selectedIndex].text.toUpperCase();
+            if (catSelect) {
+                safeText('ui-category', catSelect.options[catSelect.selectedIndex].text.toUpperCase());
+            }
         };
 
         // --- MOTOR DE BÚSQUEDA ---
@@ -785,12 +818,12 @@
                     card.classList.add('hidden');
                 }
             });
-            document.getElementById('counter').innerText = `${foundCount} servicios encontrados`;
+            safeText('counter', `${foundCount} servicios encontrados`);
             const listDiv = document.getElementById('product-list');
             const noResultsMsgId = 'search-no-results';
             let noResultsMsg = document.getElementById(noResultsMsgId);
             if (foundCount === 0) {
-                if (!noResultsMsg) {
+                if (!noResultsMsg && listDiv) {
                     noResultsMsg = document.createElement('p');
                     noResultsMsg.id = noResultsMsgId;
                     noResultsMsg.style.gridColumn = '1 / -1';
@@ -808,6 +841,7 @@
 
         async function loadServices() {
             const listDiv = document.getElementById('product-list');
+            if (!listDiv) return;
             
             if (!supabaseClient) {
                 listDiv.innerHTML = `<p style="padding: 2rem; color: var(--primary); text-align: center;">Error: No se pudo conectar con el servidor (DNS Error).</p>`;
@@ -819,8 +853,10 @@
                 
                 if (error) throw error;
                 
-                document.getElementById('inventory-search').value = ''; 
-                document.getElementById('counter').innerText = `${data.length} servicios`;
+                const searchInput = document.getElementById('inventory-search');
+                if (searchInput) searchInput.value = ''; 
+                
+                safeText('counter', `${data.length} servicios`);
                 listDiv.innerHTML = data.length ? '' : '<p style="color:var(--text-muted)">No hay servicios registrados.</p>';
                 
                 data.forEach(s => {
@@ -854,7 +890,9 @@
                 const { data, error } = await supabaseClient.from('servicios').select('*').eq('id', id).single();
                 if (error) throw error;
 
-                document.getElementById('edit-id').value = data.id;
+                const editIdInput = document.getElementById('edit-id');
+                if (editIdInput) editIdInput.value = data.id;
+                
                 document.getElementById('nombre').value = data.nombre;
                 document.getElementById('precio').value = data.precio;
                 document.getElementById('descuento').value = data.descuento;
@@ -864,45 +902,54 @@
                 
                 document.getElementById('imagen-url').value = data.imagen;
                 for(let i=1; i<=5; i++) {
-                    document.getElementById(`imagen${i}-url`).value = data[`imagen${i}`] || '';
+                    const urlInput = document.getElementById(`imagen${i}-url`);
+                    if (urlInput) urlInput.value = data[`imagen${i}`] || '';
                 }
 
                 const mainPrev = document.getElementById('file-preview-main');
-                if (data.imagen) {
+                if (data.imagen && mainPrev) {
                     mainPrev.src = data.imagen;
                     mainPrev.style.display = 'block';
-                    document.getElementById('file-status').innerText = "IMAGEN ACTUAL CARGADA";
+                    safeText('file-status', "IMAGEN ACTUAL CARGADA");
                 }
 
                 for(let i=1; i<=5; i++) {
                     const url = data[`imagen${i}`];
                     const box = document.getElementById(`preview-box-${i}`);
-                    if (url) {
+                    if (box) {
                         const existingImg = box.querySelector('img');
                         if (existingImg) existingImg.remove();
-                        const img = document.createElement('img');
-                        img.src = url;
-                        box.appendChild(img);
-                        box.classList.add('has-file');
-                        box.querySelector('i').style.display = 'none';
-                    } else {
-                        box.classList.remove('has-file');
-                        const img = box.querySelector('img');
-                        if (img) img.remove();
-                        box.querySelector('i').style.display = 'block';
+                        if (url) {
+                            const img = document.createElement('img');
+                            img.src = url;
+                            box.appendChild(img);
+                            box.classList.add('has-file');
+                            const icon = box.querySelector('i');
+                            if (icon) icon.style.display = 'none';
+                        } else {
+                            box.classList.remove('has-file');
+                            const icon = box.querySelector('i');
+                            if (icon) icon.style.display = 'block';
+                        }
                     }
                 }
                 
-                document.getElementById('btn-save').innerText = "Guardar Cambios";
-                document.getElementById('btn-text').innerText = "Guardar Cambios";
-                document.getElementById('btn-cancel-edit').style.display = 'block';
-                document.getElementById('ui-img').src = data.imagen;
+                safeText('btn-text', "Guardar Cambios");
+                
+                const cancelBtn = document.getElementById('btn-cancel-edit');
+                if (cancelBtn) cancelBtn.style.display = 'block';
+                
+                const uiImg = document.getElementById('ui-img');
+                if (uiImg) uiImg.src = data.imagen;
                 
                 const catSelect = document.getElementById('categoria');
-                document.getElementById('ui-category').innerText = catSelect.options[catSelect.selectedIndex].text.toUpperCase();
-                document.getElementById('ui-name').innerText = data.nombre;
-                document.getElementById('ui-desc').innerText = data.desc || 'Descripción breve del tratamiento...';
-                document.getElementById('ui-price').innerText = "$" + data.precio.toLocaleString();
+                if (catSelect) {
+                    safeText('ui-category', catSelect.options[catSelect.selectedIndex].text.toUpperCase());
+                }
+                
+                safeText('ui-name', data.nombre);
+                safeText('ui-desc', data.desc || 'Descripción breve del tratamiento...');
+                safeText('ui-price', "$" + (data.precio ? data.precio.toLocaleString() : "0"));
                 
                 setMethod('url');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -928,7 +975,6 @@
             openPINModal(title, desc, CONFIG_SEC.pinAction, async () => executeSave());
         };
 
-        // --- LÓGICA DE GUARDADO CON BARRA DE CARGA CORREGIDA ---
         async function executeSave() {
             if (!supabaseClient) {
                 alert("El sistema de base de datos no está disponible actualmente.");
@@ -936,17 +982,16 @@
             }
 
             const btn = document.getElementById('btn-save');
-            const btnText = document.getElementById('btn-text');
             const progressOverlay = document.getElementById('save-progress');
             const msg = document.getElementById('msg-box');
             
-            btn.disabled = true;
-            msg.style.display = 'none';
-            progressOverlay.style.width = '0%';
+            if (btn) btn.disabled = true;
+            if (msg) msg.style.display = 'none';
+            if (progressOverlay) progressOverlay.style.width = '0%';
             
             const updateProgress = (percent, text) => {
-                progressOverlay.style.width = `${percent}%`;
-                btnText.innerText = `${text} (${percent}%)`;
+                if (progressOverlay) progressOverlay.style.width = `${percent}%`;
+                safeText('btn-text', `${text} (${percent}%)`);
             };
 
             try {
@@ -954,7 +999,6 @@
                 const imgFields = ['imagen', 'imagen1', 'imagen2', 'imagen3', 'imagen4', 'imagen5'];
                 const urls = {};
                 
-                // Procesar Imágenes
                 for (let i = 0; i < imgFields.length; i++) {
                     const field = imgFields[i];
                     let finalUrl = '';
@@ -962,7 +1006,8 @@
 
                     if (imageMethod === 'file') {
                         const inputId = field === 'imagen' ? 'imagen-file' : `${field}-file`;
-                        const file = document.getElementById(inputId).files[0];
+                        const inputEl = document.getElementById(inputId);
+                        const file = inputEl ? inputEl.files[0] : null;
                         
                         if (file) {
                             updateProgress(stepPercent, `Subiendo ${field === 'imagen' ? 'Portada' : 'Imagen ' + (i)}...`);
@@ -980,7 +1025,8 @@
                         }
                     } else {
                         const inputId = field === 'imagen' ? 'imagen-url' : `${field}-url`;
-                        finalUrl = document.getElementById(inputId).value;
+                        const inputEl = document.getElementById(inputId);
+                        finalUrl = inputEl ? inputEl.value : "";
                     }
                     urls[field] = finalUrl;
                     updateProgress(stepPercent + 5, "Procesando...");
@@ -988,7 +1034,6 @@
 
                 if (!urls.imagen && !isEditing) throw new Error("La imagen de portada es obligatoria");
 
-                // Guardar en DB
                 updateProgress(85, "Guardando en Base de Datos...");
                 const payload = {
                     nombre: document.getElementById('nombre').value,
@@ -1014,32 +1059,39 @@
                 updateProgress(100, "¡Exitoso!");
 
                 setTimeout(() => {
-                    msg.innerText = isEditing ? "✓ Cambios guardados correctamente" : "✓ Tratamiento publicado con éxito";
-                    msg.className = "alert alert-success";
+                    if (msg) {
+                        msg.innerText = isEditing ? "✓ Cambios guardados correctamente" : "✓ Tratamiento publicado con éxito";
+                        msg.className = "alert alert-success";
+                    }
                     clearAll();
                     loadServices();
                 }, 800);
 
             } catch (err) {
                 console.error("Save error:", err);
-                msg.innerHTML = `⚠️ Error de red o configuración: No se pudo conectar con el servidor.`;
-                msg.className = "alert alert-error";
-                btnText.innerText = isEditing ? "Guardar Cambios" : "Publicar Tratamiento";
-                progressOverlay.style.width = '0%';
+                if (msg) {
+                    msg.innerHTML = `⚠️ Error de red o configuración: No se pudo completar la operación.`;
+                    msg.className = "alert alert-error";
+                }
+                safeText('btn-text', isEditing ? "Guardar Cambios" : "Publicar Tratamiento");
+                if (progressOverlay) progressOverlay.style.width = '0%';
             } finally {
-                btn.disabled = false;
+                if (btn) btn.disabled = false;
             }
         }
 
-        document.getElementById('btn-cancel-edit').onclick = clearAll;
+        const cancelEditBtn = document.getElementById('btn-cancel-edit');
+        if (cancelEditBtn) cancelEditBtn.onclick = clearAll;
 
         window.onload = () => {
             setupMiniPreviews();
             const session = localStorage.getItem(CONFIG_SEC.storageKey);
             if (session === "active") unlockPanel();
             else {
-                document.getElementById('main-content').style.display = 'none';
-                document.getElementById('login-overlay').style.display = 'flex';
+                const overlay = document.getElementById('login-overlay');
+                const mainContent = document.getElementById('main-content');
+                if (mainContent) mainContent.style.display = 'none';
+                if (overlay) overlay.style.display = 'flex';
             }
         };
     </script>
